@@ -12,7 +12,7 @@ endif()
 project ("tinyrenderer")
 
 # 指定 C++ 标准 (推荐 C++14)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # 直接将 0/src 下的代码编译成可执行文件，千万不要写 add_subdirectory
@@ -20,4 +20,6 @@ add_executable(TinyRenderer
     "0/src/main.cpp"
     "0/src/tgaimage.cpp"
     "0/src/tgaimage.h"
-)
+    "0/src/model.h"
+    "0/src/model.cpp"
+    "0/src/geometry.h")
