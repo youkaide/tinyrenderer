@@ -51,65 +51,53 @@ void line(int xOri, int yOri, int xEnd, int yEnd, TGAImage& image,TGAColor color
 	}
 }
 
-void fullTriangle(int minX, int minY, int midX, int midY, int maxX, int maxY, TGAImage& image, TGAColor color)
-{
-	if (minY == maxY) return;
-
-	for (int y = maxY; y >= minY; --y)
-	{
-		float t1 = (float)(y - minY) / (maxY - minY);
-		int x1 = minX + (maxX - minX) * t1;
-
-		int x2 = x1; 
-
-		if (y > midY)
-		{
-			if (maxY != midY)
-			{
-				float t2 = (float)(y - midY) / (maxY - midY);
-				x2 = midX + (maxX - midX) * t2;
-			}
-		}
-		else
-		{
-			if (midY != minY) 
-			{
-				float t3 = (float)(y - minY) / (midY - minY);
-				x2 = minX + (midX - minX) * t3;
-			}
-		}
-
-		line(x1, y, x2, y, image, color);
-	}
-}
 
 void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage& image, TGAColor color)
 {
-	int minX = ax;
-	int minY = ay;
-	int midX = bx;
-	int midY = by;
-	int maxX = cx;
-	int maxY = cy;
-	if (maxY < midY)
+	if (ay < by)
 	{
-		std::swap(maxY, midY);
-		std::swap(maxX, midX);
+		std::swap(ay, by);
+		std::swap(ax, bx);
 	}
-	if (maxY < minY)
+	if (ay < cy)
 	{
-		std::swap(maxY, minY);
-		std::swap(maxX, minX);
+		std::swap(ay, cy);
+		std::swap(ax, cx);
 	}
-	if (midY < minY)
+	if (by < cy)
 	{
-		std::swap(midY, minY);
-		std::swap(midX, minX);
+		std::swap(by, cy);
+		std::swap(bx, cx);
 	}
-	fullTriangle(minX, minY, midX, midY, maxX, maxY, image, color);
-	line(ax, ay, bx, by, image, color);
-	line(bx, by, cx, cy, image, color);
-	line(cx, cy, ax, ay, image, color);
+
+	int totalHeight = ay - cy;
+	if (by != ay)
+	{
+		int segmentHeight = ay - by;
+		for (int y = by; y <= ay; ++y)
+		{
+			int x1 = cx + ((ax - cx) * (y - cy)) / totalHeight;
+			int x2 = bx + ((ax - bx) * (y - by)) / segmentHeight;
+			for (int x = std::min(x1, x2); x <= std::max(x1, x2); ++x)
+			{
+				image.set(x, y, color);
+			}
+		}
+	}
+
+	if (cy != by)
+	{
+		int segmentHeight = by - cy;
+		for (int y = cy; y <= by; ++y)
+		{
+			int x1 = cx + ((ax - cx) * (y - cy)) / totalHeight;
+			int x2 = cx + ((bx - cx) * (y - cy)) / segmentHeight;
+			for (int x = std::min(x1, x2); x <= std::max(x1, x2); ++x)
+			{
+				image.set(x, y, color);
+			}
+		}
+	}
 }
 
 
