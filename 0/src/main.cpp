@@ -51,55 +51,37 @@ void line(int xOri, int yOri, int xEnd, int yEnd, TGAImage& image,TGAColor color
 	}
 }
 
+double signed_triangle_area(int x1, int y1, int x2, int y2, int x3, int y3)
+{
+	return 0.5 * (x1 * y2 - x2 * y1 + x2 * y3 - x3 * y2 + x3 * y1 - x1 * y3);
+}
 
 void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage& image, TGAColor color)
 {
-	if (ay < by)
-	{
-		std::swap(ay, by);
-		std::swap(ax, bx);
-	}
-	if (ay < cy)
-	{
-		std::swap(ay, cy);
-		std::swap(ax, cx);
-	}
-	if (by < cy)
-	{
-		std::swap(by, cy);
-		std::swap(bx, cx);
-	}
+	int maxX = std::max(std::max(ax, bx), cx);
+	int maxY = std::max(std::max(ay, by), cy);
+	int minX = std::min(std::min(ax, bx), cx);
+	int minY = std::min(std::min(ay, by), cy);
 
-	int totalHeight = ay - cy;
-	if (by != ay)
-	{
-		int segmentHeight = ay - by;
-		for (int y = by; y <= ay; ++y)
-		{
-			int x1 = cx + ((ax - cx) * (y - cy)) / totalHeight;
-			int x2 = bx + ((ax - bx) * (y - by)) / segmentHeight;
-			for (int x = std::min(x1, x2); x <= std::max(x1, x2); ++x)
-			{
-				image.set(x, y, color);
-			}
-		}
-	}
+	double totalArea = signed_triangle_area(ax, ay, bx, by, cx, cy);
 
-	if (cy != by)
+	for (int x = minX; x <= maxX; ++x)
 	{
-		int segmentHeight = by - cy;
-		for (int y = cy; y <= by; ++y)
+		for (int y = minY; y <= maxY; ++y)
 		{
-			int x1 = cx + ((ax - cx) * (y - cy)) / totalHeight;
-			int x2 = cx + ((bx - cx) * (y - cy)) / segmentHeight;
-			for (int x = std::min(x1, x2); x <= std::max(x1, x2); ++x)
+			double alpha = signed_triangle_area(ax, ay, bx, by, x, y) / totalArea;
+			double beta = signed_triangle_area(bx, by, cx, cy, x, y) / totalArea;
+			double gamma = signed_triangle_area(cx, cy, ax, ay, x, y) / totalArea;
+
+			if (alpha < 0 || beta < 0 || gamma < 0)
 			{
-				image.set(x, y, color);
+				continue;
 			}
+
+			image.set(x, y, color);
 		}
 	}
 }
-
 
 std::tuple<int, int> project(vec3 v)
 {
