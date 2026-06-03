@@ -9,9 +9,10 @@ const TGAColor red   = TGAColor(255, 0,   0,   255);
 const TGAColor green = TGAColor(0, 255, 0, 255);
 const TGAColor blue = TGAColor(255, 128,  64, 255);
 const TGAColor yellow = TGAColor(0, 200, 255, 255);
+const TGAColor black = TGAColor(0, 0, 0, 0);
 
-constexpr int width = 128;
-constexpr int height = 128;
+constexpr int width = 800;
+constexpr int height = 800;
 
 void line(int xOri, int yOri, int xEnd, int yEnd, TGAImage& image,TGAColor color)
 {
@@ -65,6 +66,8 @@ void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage& image, T
 
 	double totalArea = signed_triangle_area(ax, ay, bx, by, cx, cy);
 
+	if (totalArea < 1) return;
+
 	for (int x = minX; x <= maxX; ++x)
 	{
 		for (int y = minY; y <= maxY; ++y)
@@ -91,12 +94,20 @@ std::tuple<int, int> project(vec3 v)
 
 int main(int argc, char** argv) 
 {
+	Model model = "C:/Games101/tinyrenderer/0/src/obj/african_head/african_head.obj";
+
 	TGAImage image(width, height, TGAImage::RGB);
 
-	triangle(7, 45, 35, 100, 45, 60, image, red);
-	triangle(120, 35, 90, 5, 45, 110, image, white);
-	triangle(115, 83, 80, 90, 85, 120, image, green);
-	
+	for (int i = 0; i < model.nfaces(); ++i)
+	{
+		auto [ax, ay] = project(model.vert(i, 0));
+		auto [bx, by] = project(model.vert(i, 1));
+		auto [cx, cy] = project(model.vert(i, 2));
+
+		TGAColor color = TGAColor(rand() % 255, rand() % 255, rand() % 255, rand() % 255);
+
+		triangle(ax, ay, bx, by, cx, cy, image, color);
+	}
 
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	image.write_tga_file("output.tga");
