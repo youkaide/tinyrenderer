@@ -11,8 +11,8 @@ const TGAColor blue = TGAColor(255, 128,  64, 255);
 const TGAColor yellow = TGAColor(0, 200, 255, 255);
 const TGAColor black = TGAColor(0, 0, 0, 0);
 
-constexpr int width = 64;
-constexpr int height = 64;
+constexpr int width = 1280;
+constexpr int height = 1280;
 
 void line(int xOri, int yOri, int xEnd, int yEnd, TGAImage& image,TGAColor color)
 {
@@ -57,7 +57,7 @@ double signed_triangle_area(int x1, int y1, int x2, int y2, int x3, int y3)
 	return 0.5 * (x1 * y2 - x2 * y1 + x2 * y3 - x3 * y2 + x3 * y1 - x1 * y3);
 }
 
-void triangle(int ax, int ay, int bx, int by, int cx, int cy, int az, int bz, int cz, TGAImage& image)
+void triangle(int ax, int ay, int bx, int by, int cx, int cy, int az, int bz, int cz, TGAImage& image, TGAImage& zBuffer)
 {
 	int maxX = std::max(std::max(ax, bx), cx);
 	int maxY = std::max(std::max(ay, by), cy);
@@ -83,14 +83,20 @@ void triangle(int ax, int ay, int bx, int by, int cx, int cy, int az, int bz, in
 
 			double thickness = 0.1;
 
-			if (alpha > thickness && beta > thickness && gamma > thickness)
-			{
-				continue;
-			}
+			//if (alpha > thickness && beta > thickness && gamma > thickness)
+			//{
+			//	continue;
+			//}
 
 			uint8_t r = static_cast<uint8_t>(alpha * 255);
 			uint8_t g = static_cast<uint8_t>(beta * 255);
 			uint8_t b = static_cast<uint8_t>(gamma * 255);
+
+			unsigned char z = static_cast<unsigned char>(alpha * az + beta * bz + gamma * cz);
+			TGAColor zbufColor = zBuffer.get(x, y);
+			if (z <= zbufColor.b) continue;
+
+			zBuffer.set(x, y, TGAColor{ z,z,z,z });
 
 			TGAColor color = { b, g, r, 255 };
 
@@ -99,37 +105,40 @@ void triangle(int ax, int ay, int bx, int by, int cx, int cy, int az, int bz, in
 	}
 }
 
-std::tuple<int, int> project(vec3 v)
+std::tuple<int, int, int> project(vec3 v)
 {
 	return { (v.x + 1.) * width / 2,
-		(v.y + 1.) * height / 2 };
+		(v.y + 1.) * height / 2,
+		(v.z + 1.) * 255. / 2 };
 }
 
 int main(int argc, char** argv) 
 {
-	//Model model = "C:/Games101/tinyrenderer/0/src/obj/african_head/african_head.obj";
+	Model model = "C:/Games101/tinyrenderer/0/src/obj/diablo3_pose/diablo3_pose.obj";
 
 	TGAImage image(width, height, TGAImage::RGB);
+	TGAImage zBufferImage(width, height, TGAImage::GRAYSCALE);
 
-	//for (int i = 0; i < model.nfaces(); ++i)
-	//{
-	//	auto [ax, ay] = project(model.vert(i, 0));
-	//	auto [bx, by] = project(model.vert(i, 1));
-	//	auto [cx, cy] = project(model.vert(i, 2));
+	for (int i = 0; i < model.nfaces(); ++i)
+	{
+		auto [ax, ay, az] = project(model.vert(i, 0));
+		auto [bx, by, bz] = project(model.vert(i, 1));
+		auto [cx, cy, cz] = project(model.vert(i, 2));
 
-	//	TGAColor color = TGAColor(rand() % 255, rand() % 255, rand() % 255, rand() % 255);
+		triangle(ax, ay, bx, by, cx, cy, az, bz, cz, image, zBufferImage);
+	}
 
-	//	triangle(ax, ay, bx, by, cx, cy, image, color);
-	//}
-
-	int ax = 17, ay = 4, az = 13;
+	/*int ax = 17, ay = 4, az = 13;
 	int bx = 55, by = 39, bz = 128;
 	int cx = 23, cy = 59, cz = 255;
 
-	triangle(ax, ay, bx, by, cx, cy, az, bz, cz, image);
+	triangle(ax, ay, bx, by, cx, cy, az, bz, cz, image);*/
 
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	image.write_tga_file("output.tga");
+
+	zBufferImage.flip_vertically();
+	zBufferImage.write_tga_file("zBuffer.tga");
 	return 0;
 }
 
