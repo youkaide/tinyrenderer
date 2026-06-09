@@ -1,4 +1,5 @@
-﻿#include<cmath>
+﻿#define _USE_MATH_DEFINES
+#include<cmath>
 #include<tuple>
 
 #include "model.h"
@@ -57,12 +58,12 @@ double signed_triangle_area(int x1, int y1, int x2, int y2, int x3, int y3)
 	return 0.5 * (x1 * y2 - x2 * y1 + x2 * y3 - x3 * y2 + x3 * y1 - x1 * y3);
 }
 
-void triangle(int ax, int ay, int bx, int by, int cx, int cy, int az, int bz, int cz, TGAImage& image, TGAImage& zBuffer)
+void triangle(int ax, int ay, int bx, int by, int cx, int cy, int az, int bz, int cz, TGAImage& image, TGAImage& zBuffer,TGAColor color)
 {
-	int maxX = std::max(std::max(ax, bx), cx);
-	int maxY = std::max(std::max(ay, by), cy);
-	int minX = std::min(std::min(ax, bx), cx);
-	int minY = std::min(std::min(ay, by), cy);
+	int minX = std::max(0, std::min(std::min(ax, bx), cx));
+	int minY = std::max(0, std::min(std::min(ay, by), cy));
+	int maxX = std::min(width - 1, std::max(std::max(ax, bx), cx));
+	int maxY = std::min(height - 1, std::max(std::max(ay, by), cy));
 
 	double totalArea = signed_triangle_area(ax, ay, bx, by, cx, cy);
 
@@ -92,17 +93,33 @@ void triangle(int ax, int ay, int bx, int by, int cx, int cy, int az, int bz, in
 			uint8_t g = static_cast<uint8_t>(beta * 255);
 			uint8_t b = static_cast<uint8_t>(gamma * 255);
 
-			unsigned char z = static_cast<unsigned char>(alpha * az + beta * bz + gamma * cz);
+			double z_float = alpha * az + beta * bz + gamma * cz;
+			unsigned char z = static_cast<unsigned char>(std::max(0.0, std::min(255.0, z_float)));
 			TGAColor zbufColor = zBuffer.get(x, y);
 			if (z <= zbufColor.b) continue;
 
 			zBuffer.set(x, y, TGAColor{ z,z,z,z });
 
-			TGAColor color = { b, g, r, 255 };
-
 			image.set(x, y, color);
 		}
 	}
+}
+
+vec3 rotate(vec3 v)
+{
+	constexpr double a = M_PI / 6;
+	mat3 rotationYMat = mat3::identity();
+	rotationYMat[0][0] = std::cos(a);
+	rotationYMat[0][2] = std::sin(a);
+	rotationYMat[2][0] = -std::sin(a);
+	rotationYMat[2][2] = std::cos(a);
+	return rotationYMat * v;
+}
+
+vec3 perspective(vec3 v)
+{
+	constexpr double c = 3.;
+	return v / (1 - v.z / c);
 }
 
 std::tuple<int, int, int> project(vec3 v)
@@ -114,18 +131,19 @@ std::tuple<int, int, int> project(vec3 v)
 
 int main(int argc, char** argv) 
 {
-	Model model = "C:/Games101/tinyrenderer/0/src/obj/diablo3_pose/diablo3_pose.obj";
+	Model model = "C:\\Games101\\tinyrenderer\\0\\src\\obj\\diablo3_pose\\diablo3_pose.obj";
 
 	TGAImage image(width, height, TGAImage::RGB);
 	TGAImage zBufferImage(width, height, TGAImage::GRAYSCALE);
 
 	for (int i = 0; i < model.nfaces(); ++i)
 	{
-		auto [ax, ay, az] = project(model.vert(i, 0));
-		auto [bx, by, bz] = project(model.vert(i, 1));
-		auto [cx, cy, cz] = project(model.vert(i, 2));
+		auto [ax, ay, az] = project(perspective(rotate(model.vert(i, 0))));
+		auto [bx, by, bz] = project(perspective(rotate(model.vert(i, 1))));
+		auto [cx, cy, cz] = project(perspective(rotate(model.vert(i, 2))));
 
-		triangle(ax, ay, bx, by, cx, cy, az, bz, cz, image, zBufferImage);
+		TGAColor color = TGAColor(rand() % 255, rand() % 255, rand() % 255, 255);
+		triangle(ax, ay, bx, by, cx, cy, az, bz, cz, image, zBufferImage, color);
 	}
 
 	/*int ax = 17, ay = 4, az = 13;

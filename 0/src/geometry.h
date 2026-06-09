@@ -3,23 +3,23 @@
 #include <cassert>
 #include <iostream>
 
-template<int n> struct vec 
+template<int n> struct vec
 {
-    double data[n] = {0};
-    double& operator[](const int i)       { assert(i>=0 && i<n); return data[i]; }
-    double  operator[](const int i) const { assert(i>=0 && i<n); return data[i]; }
+    double data[n] = { 0 };
+    double& operator[](const int i) { assert(i >= 0 && i < n); return data[i]; }
+    double  operator[](const int i) const { assert(i >= 0 && i < n); return data[i]; }
 };
 
 template<int n> std::ostream& operator<<(std::ostream& out, const vec<n>& v)
 {
-    for (int i=0; i<n; i++) out << v[i] << " ";
+    for (int i = 0; i < n; i++) out << v[i] << " ";
     return out;
 }
 
 template<> struct vec<2>
 {
     double x = 0, y = 0;
-    double& operator[](const int i)       { assert(i >= 0 && i < 2); return 1 == i ? y : x; }
+    double& operator[](const int i) { assert(i >= 0 && i < 2); return 1 == i ? y : x; }
     double  operator[](const int i) const { assert(i >= 0 && i < 2); return 1 == i ? y : x; }
 
     vec<2> operator+(const vec<2>& v) const { return{ x + v.x,y + v.y }; }
@@ -33,7 +33,7 @@ template<> struct vec<2>
 
     double dot(const vec<2>& v) const
     {
-        return x * v.x + y * v.y ;
+        return x * v.x + y * v.y;
     }
 
     double cross(const vec<2>& v) const
@@ -66,10 +66,10 @@ template<> struct vec<2>
 
 typedef vec<2> vec2;
 
-template<> struct vec<3> 
+template<> struct vec<3>
 {
     double x = 0, y = 0, z = 0;
-    double& operator[](const int i)       { assert(i >= 0 && i < 3); return i ? (1 == i ? y : z) : x; }
+    double& operator[](const int i) { assert(i >= 0 && i < 3); return i ? (1 == i ? y : z) : x; }
     double  operator[](const int i) const { assert(i >= 0 && i < 3); return i ? (1 == i ? y : z) : x; }
 
     vec<3> operator+(const vec<3>& v) const { return { x + v.x,y + v.y,z + v.z }; }
@@ -108,7 +108,7 @@ template<> struct vec<3>
         return std::sqrt((x - v.x) * (x - v.x) + (y - v.y) * (y - v.y) + (z - v.z) * (z - v.z));
     }
 
-    double squared_distance(const vec<3>& v) const 
+    double squared_distance(const vec<3>& v) const
     {
         return (x - v.x) * (x - v.x) + (y - v.y) * (y - v.y) + (z - v.z) * (z - v.z);
     }
@@ -116,10 +116,10 @@ template<> struct vec<3>
 
 typedef vec<3> vec3;
 
-template<> struct vec<4> 
+template<> struct vec<4>
 {
     double x = 0, y = 0, z = 0, w = 0;
-    double& operator[](const int i)       { assert(i >= 0 && i < 4); return i ? (1 == i ? y : (2 == i ? z : w)) : x; }
+    double& operator[](const int i) { assert(i >= 0 && i < 4); return i ? (1 == i ? y : (2 == i ? z : w)) : x; }
     double  operator[](const int i) const { assert(i >= 0 && i < 4); return i ? (1 == i ? y : (2 == i ? z : w)) : x; }
 
     vec<4> operator+(const vec<4>& v) const { return { x + v.x,y + v.y,z + v.z,w + v.w }; }
@@ -172,10 +172,10 @@ inline vec<3> proj(const vec<4>& v)
     return { v.x / v.w,v.y / v.w,v.z / v.w };
 }
 
-template<int n> struct mat 
+template<int n> struct mat
 {
     vec<n> rows[n];
-    vec<n>& operator[](const int i)       { assert(i >= 0 && i < n); return rows[i]; }
+    vec<n>& operator[](const int i) { assert(i >= 0 && i < n); return rows[i]; }
     vec<n>  operator[](const int i) const { assert(i >= 0 && i < n); return rows[i]; }
 
     mat()
@@ -199,36 +199,36 @@ template<int n> struct mat
         return m;
     }
 
-    vec<n> col(int idx) const 
+    vec<n> col(int idx) const
     {
         assert(idx >= 0 && idx < n);
         vec<n> result;
-        for (int i = 0; i < n; ++i) 
+        for (int i = 0; i < n; ++i)
         {
             result[i] = rows[i][idx];
         }
         return result;
     }
 
-     mat<n> transpose()
-     {
-         mat<n> res;
-         for (int i = 0; i < n; i++)
-         {
-             for (int j = 0; j < n; j++)
-             {
-                 res[i][j] = rows[j][i];
-             }
-         }
-         return res;
-     }
+    mat<n> transpose()
+    {
+        mat<n> res;
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                res[i][j] = rows[j][i];
+            }
+        }
+        return res;
+    }
 };
 
-template<int n> std::ostream& operator<<(std::ostream& out, const mat<n>& m) 
+template<int n> std::ostream& operator<<(std::ostream& out, const mat<n>& m)
 {
-    for (int i = 0; i < n; i++) 
+    for (int i = 0; i < n; i++)
     {
-        out << m[i] << "\n"; 
+        out << m[i] << "\n";
     }
     return out;
 }
