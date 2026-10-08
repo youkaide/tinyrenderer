@@ -17,5 +17,6 @@ public:
     vec4 vert(const int iface, const int nthvert) const;   // 0 <= iface <= nfaces(), 0 <= nthvert < 3
     vec4 normal(const int iface, const int nthvert) const; // normal coming from the "vn x y z" entries in the .obj file
     vec4 normal(const vec2& uv) const;                     // normal vector from the normal map texture
+    TGAColor texture(const vec2& uv) const;               // texture color from normal map
     vec2 uv(const int iface, const int nthvert) const;     // uv coordinates of triangle corners
 };

@@ -11,11 +11,16 @@ endif()
 
 project ("tinyrenderer")
 
-# 指定 C++ 标准 (推荐 C++14)
+# 指定 C++ 标准 (推荐 C++14/17)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# 直接将 0/src 下的代码编译成可执行文件
+list(APPEND CMAKE_PREFIX_PATH "C:/CG/Games101/tinyrenderer/SDL3-3.4.4")
+list(APPEND CMAKE_PREFIX_PATH "C:/CG/Games101/tinyrenderer/SDL3_ttf-3.2.0")
+find_package(SDL3 REQUIRED)
+find_package(SDL3_ttf REQUIRED)
+
+# 【合并修改】只创建一个可执行文件 TinyRenderer，并包含所有的源文件
 add_executable(TinyRenderer
     "0/src/main.cpp"
     "0/src/tgaimage.cpp"
@@ -25,4 +30,7 @@ add_executable(TinyRenderer
     "0/src/geometry.h" 
     "0/src/our_gl.h"
     "0/src/our_gl.cpp" 
-    )
+)
+
+# 把 SDL3 库链接到我们刚刚创建的 TinyRenderer 上！
+target_link_libraries(TinyRenderer PRIVATE SDL3::SDL3 SDL3_ttf::SDL3_ttf)
